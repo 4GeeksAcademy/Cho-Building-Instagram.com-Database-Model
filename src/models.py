@@ -1,34 +1,49 @@
 import os
 import sys
-from sqlalchemy import Column, ForeignKey, Integer, String
+from sqlalchemy import Column, ForeignKey, Integer, String, Text, Date, LargeBinary
 from sqlalchemy.orm import relationship, declarative_base
 from sqlalchemy import create_engine
 from eralchemy2 import render_er
 
 Base = declarative_base()
 
-class Person(Base):
-    __tablename__ = 'person'
-    # Here we define columns for the table person
-    # Notice that each column is also a normal Python instance attribute.
+class User(Base):
+    __tablename__ = 'user'
     id = Column(Integer, primary_key=True)
-    name = Column(String(250), nullable=False)
+    username = Column(String(255), nullable=False)
+    email = Column(String(255), nullable=False)
+    password = Column(String(255), nullable=False)
+    bio = Column(Text)
+    profile_picture = Column(LargeBinary)
+    date_joined = Column(Date)
 
-class Address(Base):
-    __tablename__ = 'address'
-    # Here we define columns for the table address.
-    # Notice that each column is also a normal Python instance attribute.
+class Post(Base):
+    __tablename__ = 'post'
     id = Column(Integer, primary_key=True)
-    street_name = Column(String(250))
-    street_number = Column(String(250))
-    post_code = Column(String(250), nullable=False)
-    person_id = Column(Integer, ForeignKey('person.id'))
-    person = relationship(Person)
+    user_id = Column(Integer, ForeignKey('user.id'))
+    caption = Column(Text)
+    image = Column(LargeBinary)
+    date_posted = Column(Date)
+    user = relationship('User')
 
-    def to_dict(self):
-        return {}
+class Follow(Base):
+    __tablename__ = 'follow'
+    id = Column(Integer, primary_key=True)
+    follower_user_id = Column(Integer, ForeignKey('user.id'))
+    followed_user_id = Column(Integer, ForeignKey('user.id'))
+    date_followed = Column(Date)
+    follower = relationship('User', foreign_keys=[follower_user_id])
+    followed = relationship('User', foreign_keys=[followed_user_id])
 
-## Draw from SQLAlchemy base
+class Like(Base):
+    __tablename__ = 'like'
+    id = Column(Integer, primary_key=True)
+    user_id = Column(Integer, ForeignKey('user.id'))
+    post_id = Column(Integer, ForeignKey('post.id'))
+    date_liked = Column(Date)
+    user = relationship('User')
+    post = relationship('Post')
+
 try:
     result = render_er(Base, 'diagram.png')
     print("Success! Check the diagram.png file")
